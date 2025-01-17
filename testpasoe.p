@@ -36,8 +36,9 @@ DEFINE FRAME fr-Parameters
    cConnectionString LABEL "Connection String" COLON 20 HELP "Full connection string" FORMAT "X(120)" 
       VIEW-AS FILL-IN SIZE-CHARS 40 BY 1
    SKIP (1)
-   lcOutput    LABEL "Output"    COLON 20 HELP "Output from ping.p" FORMAT "X(200)"
-      VIEW-AS EDITOR LARGE SIZE-CHARS 67 BY 15
+   "Output:"
+   lcOutput NO-LABELS AT 1 HELP "Output from ping.p" FORMAT "X(200)"
+      VIEW-AS EDITOR LARGE SIZE-CHARS 80 BY 15 NO-BOX 
 WITH TITLE " Connection Parameters " CENTERED ROW 3 SIDE-LABELS 1 DOWN WIDTH 90.
    
 DISPLAY 
@@ -88,6 +89,8 @@ REPEAT WITH FRAME fr-Parameters:
       lcOutput
       WITH FRAME fr-Parameters.
       
+      lcOutput:READ-ONLY = TRUE.
+      
       UPDATE 
       lcOutput
       WITH FRAME fr-Parameters.
@@ -98,18 +101,19 @@ CATCH oError AS Progress.Lang.Error :
    DEFINE VARIABLE iMessage AS INTEGER   NO-UNDO.
    DEFINE VARIABLE cMessage AS CHARACTER NO-UNDO.
    
-   DO iMessage = 1 TO oError:NumMessages:
-      cMessage = SUBSTITUTE ("&1&2&3. &4",
-                             cMessage,
-                             (IF cMessage NE "" THEN "~n" ELSE ""),
-                             iMessage,
-                             oError:GetMessage(iMessage)).
-   END.
-                             
-   MESSAGE 
-   cMessage
-   VIEW-AS ALERT-BOX ERROR.
-   
+   IF oError:NumMessages GE 1 THEN DO:
+      DO iMessage = 1 TO oError:NumMessages:
+         cMessage = SUBSTITUTE ("&1&2&3. &4",
+                                cMessage,
+                                (IF cMessage NE "" THEN "~n" ELSE ""),
+                                iMessage,
+                                oError:GetMessage(iMessage)).
+      END.
+                                
+      MESSAGE 
+      cMessage
+      VIEW-AS ALERT-BOX ERROR.
+   END.   
 END CATCH.
 
 
