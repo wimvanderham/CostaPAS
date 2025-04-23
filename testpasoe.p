@@ -10,6 +10,10 @@
     Author(s)   : Wim van der Ham (WITS)
     Created     : Fri Jan 17 11:56:09 CET 2025
     Notes       :
+       
+    Modified by : Wim van der Ham (WITS)
+    Modified on : 23 Apr 2025
+    Reason      : Added option to use "classic AppServer" in Direct Connect       
   ----------------------------------------------------------------------*/
 
 /* ***************************  Definitions  ************************** */
@@ -32,14 +36,13 @@ DEFINE FRAME fr-Parameters
       VIEW-AS FILL-IN SIZE-CHARS 40 BY 1
    iPort       LABEL "HTTP Port" COLON 20 HELP "HTTP Port number"        FORMAT "zzzz9" 
    cProtocol   LABEL "Protocol"  COLON 20 HELP "Protocol"                FORMAT "X(4)" 
-      VIEW-AS RADIO-SET HORIZONTAL RADIO-BUTTONS "AppServer", "apsv", "REST", "rest", "SOAP", "soap", "WEB", "web"
+      VIEW-AS RADIO-SET HORIZONTAL RADIO-BUTTONS "AppServer", "apsv", "Classic AppServer", "cas", "REST", "rest", "SOAP", "soap", "WEB", "web"
    cConnectionString LABEL "Connection String" COLON 20 HELP "Full connection string" FORMAT "X(120)" 
       VIEW-AS FILL-IN SIZE-CHARS 40 BY 1
    SKIP (1)
-   "Output:"
-   lcOutput NO-LABELS AT 1 HELP "Output from ping.p" FORMAT "X(200)"
-      VIEW-AS EDITOR LARGE SIZE-CHARS 80 BY 15 NO-BOX 
-WITH TITLE " Connection Parameters " CENTERED ROW 3 SIDE-LABELS 1 DOWN WIDTH 90.
+   lcOutput    LABEL "Output"    COLON 20 HELP "Output from ping.p" FORMAT "X(200)"
+      VIEW-AS EDITOR LARGE SIZE-CHARS 77 BY 18
+WITH TITLE " Connection Parameters " CENTERED ROW 3 SIDE-LABELS 1 DOWN WIDTH 100.
    
 DISPLAY 
    cHost
@@ -54,15 +57,27 @@ REPEAT WITH FRAME fr-Parameters:
    UPDATE 
       cHost
       iPort
+      cProtocol
    .
    
-   ASSIGN 
-      cConnectionString = SUBSTITUTE ("-URL http://&1:&2/&3",
-                                      cHost,
-                                      iPort,
-                                      cProtocol)
-   .
-   DISPLAY 
+   CASE cProtocol:
+      WHEN "cas" THEN
+         cConnectionString = SUBSTITUTE ("-URL AppServerDC://&1:&2",
+                                         cHost,
+                                         iPort).
+      WHEN "apsv" THEN 
+         cConnectionString = SUBSTITUTE ("-URL http://&1:&2/&3",
+                                         cHost,
+                                         iPort,
+                                         cProtocol) .
+      OTHERWISE DO:
+         MESSAGE SUBSTITUTE ("Protocollo '&1' non implementato.", cProtocol)
+         VIEW-AS ALERT-BOX WARNING.
+         UNDO, RETRY.
+      END.
+   END CASE.
+                                                  
+   DISPLAY
       cConnectionString
    .
    
@@ -76,6 +91,7 @@ REPEAT WITH FRAME fr-Parameters:
    IF lOk EQ FALSE THEN DO:
       MESSAGE ERROR-STATUS:GET-MESSAGE (1)
       VIEW-AS ALERT-BOX WARNING.
+      UNDO, RETRY.
    END.
    
    MESSAGE "Connected?" hAppServer:CONNECTED ()
