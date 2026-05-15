@@ -23,7 +23,7 @@ USING Progress.Json.ObjectModel.*.
 DEFINE INPUT  PARAMETER ipcJSONIn  AS LONGCHAR NO-UNDO.
 DEFINE OUTPUT PARAMETER opcJSONOut AS LONGCHAR NO-UNDO.
 
-{pasoeCaller.i}
+{sy/i/pasoeCaller.i}
 
 DEFINE VARIABLE oJSONIn     AS JSONObject        NO-UNDO.
 DEFINE VARIABLE oJSONOut    AS JSONObject        NO-UNDO.
